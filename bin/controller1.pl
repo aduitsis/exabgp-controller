@@ -12,8 +12,9 @@ my $path = "$Bin/../var/";
 my $DEBUG;
 my $expiration = 30;
 my $period = 10;
+my $global_destination = 'self';
 
-GetOptions( 'p=i' => \$period, 'd'=>\$DEBUG , 'path=s' => \$path, 't=i' => \$expiration );
+GetOptions( 'dest=s' => \$global_destination , 'p=i' => \$period, 'd'=>\$DEBUG , 'path=s' => \$path, 't=i' => \$expiration );
 
 # Ignore Control C
 # allow exabgp to send us a SIGTERM when it is time
@@ -40,7 +41,7 @@ while (1) {
 				$DEBUG && say STDERR "$line already exists";
 			}
 			else {
-				say "announce route $line/32 next-hop self";
+				say "announce route $line/32 next-hop $global_destination";
 				$DEBUG && say STDERR "$line announced";
 			}
 			$ips{ $line } = time;
@@ -52,7 +53,7 @@ while (1) {
 	for my $entry ( sort keys %ips ) {
 		if ( time - $ips{ $entry } > $expiration ) {
 			delete $ips{ $entry };
-			say "withdraw route $entry/32 next-hop self";
+			say "withdraw route $entry/32 next-hop $global_destination";
 			$DEBUG && say STDERR "withdrawing $entry";
 		}
 	}
